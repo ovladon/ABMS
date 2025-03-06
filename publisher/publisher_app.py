@@ -335,7 +335,7 @@ class DataIngestion:
 
 def main():
     st.title("Publisher Application")
-    st.write("Upload your data (text, PDF, DOCX, image, audio, video, CSV, Excel) to generate the aspect based metadata.")
+    st.write("Upload your data (text, PDF, DOCX, image, audio, video, CSV, Excel) to generate the Aspect-Based Metadata.")
 
     if 'analysis_in_progress' not in st.session_state:
         st.session_state.analysis_in_progress = False
@@ -467,7 +467,7 @@ def main():
                     st.error(st.session_state.error)
                 else:
                     if st.session_state.aspect_based_metadata and st.session_state.encryption_key:
-                        st.write("**aspect based metadata:**")
+                        st.write("**Aspect-Based Metadata:**")
                         st.code(st.session_state.aspect_based_metadata)
                         st.write("**Encryption Key (hex):**")
                         st.code(st.session_state.encryption_key.hex())
@@ -487,7 +487,7 @@ def main():
         else:
             if st.session_state.analysis_results:
                 if st.session_state.aspect_based_metadata and st.session_state.encryption_key:
-                    st.write("**aspect based metadata:**")
+                    st.write("**Aspect-Based Metadata:**")
                     st.code(st.session_state.aspect_based_metadata)
                     st.write("**Encryption Key (hex):**")
                     st.code(st.session_state.encryption_key.hex())
@@ -632,7 +632,7 @@ def start_analysis(text, data_type, result_queue, control_event):
             encryption_key = get_random_bytes(16)
             aspect_based_metadata = generate_aspect_based_metadata(analysis_results, encryption_key)
             if aspect_based_metadata is None:
-                result_queue.put({'type': 'error', 'content': "Error generating the aspect based metadata."})
+                result_queue.put({'type': 'error', 'content': "Error generating the Aspect-Based Metadata."})
             else:
                 result_queue.put({
                     'type': 'complete',
