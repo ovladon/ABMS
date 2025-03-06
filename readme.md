@@ -17,7 +17,7 @@ The Aspect-Based Metadata System (ABMS) is an open-source tool designed to gener
 
 ## Overview
 
-The ABMS processes various types of input content (such as text, PDFs, DOCX files, images, audio, video, and structured data) through a suite of analytical modules. It computes scores for multiple aspects of the content (e.g., sentiment, readability, objectivity) and aggregates these into a secure metadata signature. Formerly known as the "ultimate tag," this signature—now referred to as **aspect-based metadata**—can be stored, transmitted, and later decoded by authorized readers to verify content meaning and integrity.
+The ABMS processes various types of input content (such as text, PDFs, DOCX files, images, audio, video, and structured data) through a suite of analytical modules. It computes scores for multiple aspects of the content (e.g., sentiment, readability, objectivity) and aggregates these into a secure metadata signature. The **aspect-based metadata**—can be stored, transmitted, and later decoded by authorized readers to verify content meaning and integrity.
 
 The system comprises two main components:
 
