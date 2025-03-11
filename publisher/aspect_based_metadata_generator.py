@@ -1,12 +1,10 @@
-# aspect_based_metadata_generator.py
-
 import zlib
 import base64
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 
 def generate_aspect_based_metadata(analysis_results, encryption_key):
-    # Define the alphabetical order of aspects
+    # Define the order of aspects and include "data_hash" at the end.
     aspect_order = [
         'actionability_analysis',
         'audience_appropriateness_analysis',
@@ -37,89 +35,73 @@ def generate_aspect_based_metadata(analysis_results, encryption_key):
         'specificity_analysis',
         'spatial_analysis',
         'syntactic_complexity_analysis',
-        'temporal_analysis'
+        'temporal_analysis',
+        'data_hash'  # Added to include the data hash
     ]
 
     binary_data = ''
 
     for aspect in aspect_order:
-        score = analysis_results.get(aspect)
-        if score is None:
-            print(f"Aspect '{aspect}' is missing in analysis_results. Defaulting to zero or appropriate default.")
-            # Assign default value based on aspect type
-            if aspect in numerical_aspects():
-                score = numerical_aspects()[aspect][0]  # Default to min value
-            elif aspect in categorical_aspects():
-                # Default to the first category
-                category_mapping, _ = categorical_aspects()[aspect]
-                score = category_mapping[0]
+        if aspect == "data_hash":
+            # Encode the data hash (a 64-character hex string representing 256 bits).
+            hash_str = analysis_results.get("data_hash")
+            if hash_str is None:
+                hash_int = 0
             else:
-                score = 0  # Default to zero
-        print(f"Processing aspect '{aspect}' with score '{score}'")
-        binary_score = encode_aspect(aspect, score)
-        if binary_score is None:
-            # Handle the case where encoding failed
-            print(f"Error encoding aspect '{aspect}' with score '{score}'.")
-            return None
+                hash_int = int(hash_str, 16)
+            binary_score = format(hash_int, '0256b')  # 256 bits padded with zeros
+        elif aspect in numerical_aspects():
+            score = analysis_results.get(aspect)
+            if score is None:
+                print(f"Aspect '{aspect}' is missing in analysis_results. Defaulting to zero.")
+                score = numerical_aspects()[aspect][0]  # Default to min value
+            print(f"Processing aspect '{aspect}' with score '{score}'")
+            min_value, max_value, bits = numerical_aspects()[aspect]
+            try:
+                score = float(score)
+                score = max(min_value, min(score, max_value))
+                normalized_score = int((score - min_value) / (max_value - min_value) * (2 ** bits - 1))
+                binary_score = format(normalized_score, f'0{bits}b')
+            except (ValueError, TypeError) as e:
+                print(f"Error encoding numerical aspect '{aspect}': {e}")
+                return None
+        elif aspect in categorical_aspects():
+            score = analysis_results.get(aspect)
+            category_mapping, bits = categorical_aspects()[aspect]
+            int_score = None
+            for key, value in category_mapping.items():
+                if value == score:
+                    int_score = key
+                    break
+            if int_score is None:
+                print(f"Warning: Score '{score}' not found in mapping for aspect '{aspect}'. Defaulting to zero.")
+                int_score = 0
+            binary_score = format(int_score, f'0{bits}b')
+        else:
+            # For any unrecognized aspect, default to 8 bits of zeros.
+            bits = 8
+            binary_score = '0' * bits
+
         binary_data += binary_score
 
-    # Convert binary string to bytes
+    # Convert binary string to bytes.
     try:
         binary_int = int(binary_data, 2)
-        binary_bytes = binary_int.to_bytes((binary_int.bit_length() + 7) // 8, byteorder='big')
+        binary_bytes = binary_int.to_bytes((len(binary_data) + 7) // 8, byteorder='big')
     except ValueError as e:
         print(f"Error converting binary data to bytes: {e}")
         return None
 
-    # Compress the data
+    # Compress and then encrypt the data.
     compressed_data = zlib.compress(binary_bytes)
-
-    # Encrypt the data
     cipher = AES.new(encryption_key, AES.MODE_CBC)
     ct_bytes = cipher.encrypt(pad(compressed_data, AES.block_size))
     iv = cipher.iv
-
-    # Combine IV and ciphertext
     encrypted_data = iv + ct_bytes
 
-    # Encode with Base64
+    # Encode with Base64.
     aspect_based_metadata = base64.b64encode(encrypted_data).decode('utf-8')
-
     return aspect_based_metadata
-
-def encode_aspect(aspect, score):
-    if score is None:
-        print(f"Warning: Score for aspect '{aspect}' is None. Defaulting to zero.")
-        score = 0
-
-    if aspect in numerical_aspects():
-        min_value, max_value, bits = numerical_aspects()[aspect]
-        try:
-            # Ensure score is within the expected range
-            score = float(score)
-            score = max(min_value, min(score, max_value))
-            normalized_score = int((score - min_value) / (max_value - min_value) * (2 ** bits - 1))
-            binary_score = format(normalized_score, f'0{bits}b')
-        except (ValueError, TypeError) as e:
-            print(f"Error encoding numerical aspect '{aspect}': {e}")
-            return None
-    elif aspect in categorical_aspects():
-        category_mapping, bits = categorical_aspects()[aspect]
-        int_score = None
-        # Reverse mapping to find the key corresponding to the value
-        for key, value in category_mapping.items():
-            if value == score:
-                int_score = key
-                break
-        if int_score is None:
-            print(f"Warning: Score '{score}' not found in mapping for aspect '{aspect}'. Defaulting to zero.")
-            int_score = 0
-        binary_score = format(int_score, f'0{bits}b')
-    else:
-        # Default to zeros if aspect is not recognized
-        bits = 8  # Default to 8 bits for unrecognized aspects
-        binary_score = '0' * bits
-    return binary_score
 
 def numerical_aspects():
     return {
@@ -158,4 +140,3 @@ def categorical_aspects():
         'narrative_style_analysis': ({0: 'First_Person', 1: 'Second_Person', 2: 'Third_Person'}, 2),
         'spatial_analysis': ({0: 'General', 1: 'Local', 2: 'Regional', 3: 'Global'}, 2),
     }
-
