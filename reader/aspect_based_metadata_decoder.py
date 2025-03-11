@@ -1,29 +1,25 @@
-# reader/aspect_based_metadata_decoder.py
-
 import zlib
 import base64
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 
 def decode_aspect_based_metadata(aspect_based_metadata, encryption_key):
-    # Decode Base64
+    # Decode from Base64.
     encrypted_data = base64.b64decode(aspect_based_metadata)
-
-    # Extract IV and ciphertext
     iv = encrypted_data[:16]
     ct_bytes = encrypted_data[16:]
 
-    # Decrypt the data
+    # Decrypt and unpad the data.
     cipher = AES.new(encryption_key, AES.MODE_CBC, iv)
     compressed_data = unpad(cipher.decrypt(ct_bytes), AES.block_size)
 
-    # Decompress the data
+    # Decompress the data.
     binary_bytes = zlib.decompress(compressed_data)
-
-    # Convert bytes to binary string
     binary_int = int.from_bytes(binary_bytes, byteorder='big')
-    binary_data = bin(binary_int)[2:].zfill(get_total_bits())
+    total_bits = get_total_bits()
+    binary_data = bin(binary_int)[2:].zfill(total_bits)
 
+    # Define the aspect order (with "data_hash" appended).
     aspect_order = [
         'actionability_analysis',
         'audience_appropriateness_analysis',
@@ -54,7 +50,8 @@ def decode_aspect_based_metadata(aspect_based_metadata, encryption_key):
         'specificity_analysis',
         'spatial_analysis',
         'syntactic_complexity_analysis',
-        'temporal_analysis'
+        'temporal_analysis',
+        'data_hash'  # Included to decode the data hash.
     ]
 
     analysis_results = {}
@@ -65,10 +62,8 @@ def decode_aspect_based_metadata(aspect_based_metadata, encryption_key):
             min_value, max_value, bits = numerical_aspects()[aspect]
             binary_score = binary_data[index:index+bits]
             int_score = int(binary_score, 2)
-            # Convert back to original score
             score = int_score / (2 ** bits - 1) * (max_value - min_value) + min_value
-            score = round(score, 2)
-            analysis_results[aspect] = score
+            analysis_results[aspect] = round(score, 2)
             index += bits
         elif aspect in categorical_aspects():
             category_mapping, bits = categorical_aspects()[aspect]
@@ -77,18 +72,68 @@ def decode_aspect_based_metadata(aspect_based_metadata, encryption_key):
             score = category_mapping.get(int_score, 'Unknown')
             analysis_results[aspect] = score
             index += bits
+        elif aspect == "data_hash":
+            # Decode 256 bits for the data hash.
+            binary_score = binary_data[index:index+256]
+            int_score = int(binary_score, 2)
+            hash_hex = format(int_score, '064x')
+            analysis_results[aspect] = hash_hex
+            index += 256
         else:
-            # Default if aspect not recognized
             analysis_results[aspect] = 'Unknown'
-            # Assume some default bits if needed - but ideally no unknown aspects
-            # For safety, skip some bits if we had them (not specified here)
-            # or do nothing if we trust aspect_order matches encodings
 
-    # Return a wrapper dict with analysis_results
     return {
         "analysis_results": analysis_results,
         "version": "1.0.0"
     }
+
+def get_total_bits():
+    total = 0
+    aspect_order = [
+        'actionability_analysis',
+        'audience_appropriateness_analysis',
+        'cognitive_analysis',
+        'complexity_analysis',
+        'controversiality_analysis',
+        'cultural_context_analysis',
+        'emotional_polarity_analysis',
+        'ethical_considerations_analysis',
+        'formalism_analysis',
+        'genre_analysis',
+        'humor_analysis',
+        'intentionality_analysis',
+        'interactivity_analysis',
+        'lexical_diversity_analysis',
+        'modality_analysis',
+        'multimodality_analysis',
+        'narrative_style_analysis',
+        'novelty_analysis',
+        'objectivity_analysis',
+        'persuasiveness_analysis',
+        'quantitative_analysis',
+        'qualitative_analysis',
+        'readability_analysis',
+        'reliability_analysis',
+        'sentiment_analysis',
+        'social_orientation_analysis',
+        'specificity_analysis',
+        'spatial_analysis',
+        'syntactic_complexity_analysis',
+        'temporal_analysis',
+        'data_hash'
+    ]
+    for aspect in aspect_order:
+        if aspect in numerical_aspects():
+            _, _, bits = numerical_aspects()[aspect]
+            total += bits
+        elif aspect in categorical_aspects():
+            _, bits = categorical_aspects()[aspect]
+            total += bits
+        elif aspect == "data_hash":
+            total += 256
+        else:
+            total += 8
+    return total
 
 def numerical_aspects():
     return {
@@ -127,12 +172,3 @@ def categorical_aspects():
         'narrative_style_analysis': ({0: 'First_Person', 1: 'Second_Person', 2: 'Third_Person'}, 2),
         'spatial_analysis': ({0: 'General', 1: 'Local', 2: 'Regional', 3: 'Global'}, 2),
     }
-
-def get_total_bits():
-    total_bits = 0
-    for bits in numerical_aspects().values():
-        total_bits += bits[2]
-    for bits in categorical_aspects().values():
-        total_bits += bits[1]
-    return total_bits
-
