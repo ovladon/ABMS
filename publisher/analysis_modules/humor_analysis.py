@@ -1,17 +1,20 @@
-# publisher/analysis_modules/humor_analysis.py
-
 from .base_pov import BasePOV
 from transformers import pipeline
 
 class HumorAnalysis(BasePOV):
     def __init__(self, text):
         super().__init__(text)
-        # Using a model capable of detecting humor
-        self.classifier = pipeline("text-classification", model="microsoft/DialoGPT-medium")
+        # Using a fine-tuned DistilBERT model for joke detection
+        self.classifier = pipeline("text-classification", model="VitalContribution/JokeDetectBERT")
 
     def analyze(self):
-        # Due to limitations, we'll use a placeholder method
-        # In practice, a humor detection model should be used
-        humor_score = 0.0  # Assuming no humor in formal speeches
+        # Limit text length to 512 characters for efficient processing
+        input_text = self.text[:512]
+        result = self.classifier(input_text)
+        # The classifier returns a label and score; typically, 'LABEL_1' indicates a joke.
+        label = result[0]['label']
+        score = result[0]['score']
+        # Compute humor score: use the score directly if labeled as joke,
+        # otherwise, invert the score to reflect low humor.
+        humor_score = score if label == 'LABEL_1' else 1 - score
         return {'humor_analysis': humor_score}
-
