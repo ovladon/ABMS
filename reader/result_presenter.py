@@ -15,38 +15,38 @@ class ResultPresenter:
         self.aspect_limits = self.load_aspect_limits()
 
     def load_aspect_descriptions(self):
-        # (No change from previous)
+        # Descriptions for each aspect with method explanations.
         return {
             'actionability_analysis': 'Measures how action-oriented the text is.\n\n**Method:** Counts imperative sentences.',
             'audience_appropriateness_analysis': 'Determines the suitable audience level.\n\n**Method:** Uses readability scores.',
             'cognitive_analysis': 'Assesses cognitive load.\n\n**Method:** Multiple readability indices.',
-            'complexity_analysis': 'Structural complexity.\n\n**Method:** Sentence length/syntax.',
+            'complexity_analysis': 'Structural complexity.\n\n**Method:** Sentence length and syntax analysis.',
             'controversiality_analysis': 'Identifies controversy.\n\n**Method:** Topic modeling.',
-            'cultural_context_analysis': 'Cultural references.\n\n**Method:** NER for cultural entities.',
-            'emotional_polarity_analysis': 'Emotional tone.\n\n**Method:** Sentiment analysis.',
-            'ethical_considerations_analysis': 'Ethical implications.\n\n**Method:** Checks ethical guidelines.',
-            'formalism_analysis': 'Formality.\n\n**Method:** Language formality analysis.',
-            'genre_analysis': 'Classifies genre.\n\n**Method:** Genre classification models.',
-            'humor_analysis': 'Detects humor.\n\n**Method:** Humor-related linguistic features.',
-            'intentionality_analysis': 'Primary intent.\n\n**Method:** Intent recognition models.',
-            'interactivity_analysis': 'Interactivity.\n\n**Method:** Counts questions/addresses.',
-            'lexical_diversity_analysis': 'Vocabulary variety.\n\n**Method:** Type-token ratio.',
-            'modality_analysis': 'Determines modality.\n\n**Method:** Sensory references.',
-            'multimodality_analysis': 'Multiple content types.\n\n**Method:** Checks for various media.',
-            'narrative_style_analysis': 'Narrative perspective.\n\n**Method:** Identifies person usage.',
-            'novelty_analysis': 'Originality.\n\n**Method:** Compares against known texts.',
-            'objectivity_analysis': 'Objectivity.\n\n**Method:** Subjective language markers.',
-            'persuasiveness_analysis': 'Persuasiveness.\n\n**Method:** Persuasive language patterns.',
-            'quantitative_analysis': 'Numerical data.\n\n**Method:** Extracts stats/figures.',
-            'qualitative_analysis': 'Descriptive richness.\n\n**Method:** Checks descriptive language.',
-            'readability_analysis': 'Readability.\n\n**Method:** Readability scores.',
-            'reliability_analysis': 'Reliability.\n\n**Method:** Checks authoritative sources.',
-            'sentiment_analysis': 'Sentiment.\n\n**Method:** Sentiment analysis models.',
-            'social_orientation_analysis': 'Individual vs collective.\n\n**Method:** Pronoun usage.',
-            'specificity_analysis': 'Specificity.\n\n**Method:** Detail level.',
-            'spatial_analysis': 'Spatial references.\n\n**Method:** NER for locations.',
-            'syntactic_complexity_analysis': 'Syntactic complexity.\n\n**Method:** Parse trees.',
-            'temporal_analysis': 'Temporal references.\n\n**Method:** Verb tenses/time expressions.',
+            'cultural_context_analysis': 'Detects cultural references.\n\n**Method:** Named Entity Recognition for cultural entities.',
+            'emotional_polarity_analysis': 'Determines the emotional tone.\n\n**Method:** Sentiment analysis models.',
+            'ethical_considerations_analysis': 'Evaluates ethical implications.\n\n**Method:** Checks against ethical guidelines.',
+            'formalism_analysis': 'Assesses the formality of language.\n\n**Method:** Formality analysis based on vocabulary and style.',
+            'genre_analysis': 'Classifies the text into a genre.\n\n**Method:** Genre classification models.',
+            'humor_analysis': 'Detects humorous content.\n\n**Method:** Analysis of humor-related linguistic features.',
+            'intentionality_analysis': 'Identifies the primary intent of the text.\n\n**Method:** Intent recognition models.',
+            'interactivity_analysis': 'Measures interactivity in the text.\n\n**Method:** Counts direct addresses and questions.',
+            'lexical_diversity_analysis': 'Evaluates vocabulary variety.\n\n**Method:** Type-token ratio and other metrics.',
+            'modality_analysis': 'Identifies the sensory modality of content.\n\n**Method:** Detects textual, visual, or auditory cues.',
+            'multimodality_analysis': 'Checks for multiple content types.\n\n**Method:** Looks for mentions of various media types.',
+            'narrative_style_analysis': 'Assesses narrative perspective.\n\n**Method:** Identifies first-, second-, or third-person usage.',
+            'novelty_analysis': 'Measures the originality of the text.\n\n**Method:** Compares against known texts for uniqueness.',
+            'objectivity_analysis': 'Assesses objectivity.\n\n**Method:** Detects subjective language markers.',
+            'persuasiveness_analysis': 'Evaluates persuasiveness.\n\n**Method:** Looks for persuasive language patterns.',
+            'quantitative_analysis': 'Extracts numerical data.\n\n**Method:** Statistical extraction and analysis.',
+            'qualitative_analysis': 'Assesses descriptive richness.\n\n**Method:** Analysis of descriptive language.',
+            'readability_analysis': 'Measures readability.\n\n**Method:** Readability scoring algorithms.',
+            'reliability_analysis': 'Checks reliability of information.\n\n**Method:** Verification against authoritative sources.',
+            'sentiment_analysis': 'Analyzes sentiment.\n\n**Method:** Sentiment analysis models.',
+            'social_orientation_analysis': 'Assesses focus on individual versus collective language.\n\n**Method:** Pronoun usage analysis.',
+            'specificity_analysis': 'Measures detail and specificity.\n\n**Method:** Analysis of descriptive precision.',
+            'spatial_analysis': 'Detects spatial references.\n\n**Method:** Named Entity Recognition for locations.',
+            'syntactic_complexity_analysis': 'Evaluates syntactic complexity.\n\n**Method:** Analysis of sentence structures and parse trees.',
+            'temporal_analysis': 'Identifies temporal references.\n\n**Method:** Verb tense and time expression analysis.'
         }
 
     def load_aspect_limits(self):
@@ -77,6 +77,10 @@ class ResultPresenter:
     def present_in_streamlit(self):
         st.header("Analysis Results")
 
+        # Explicitly display the data hash if it exists.
+        if "data_hash" in self.analysis_results:
+            st.write("**Data Hash:**", self.analysis_results["data_hash"])
+
         # Separate numerical and categorical results
         numerical_results = {k: v for k, v in self.analysis_results.items() if isinstance(v, float)}
         categorical_results = {k: v for k, v in self.analysis_results.items() if not isinstance(v, float)}
@@ -84,6 +88,9 @@ class ResultPresenter:
         st.subheader("Analysis Overview")
         combined_results = []
         for key in self.analysis_results:
+            # Avoid re-displaying the hash in the table since it's already shown above.
+            if key == "data_hash":
+                continue
             aspect_name = key.replace('_', ' ').capitalize()
             value = self.analysis_results[key]
             description = self.aspect_descriptions.get(key, '')
@@ -98,7 +105,6 @@ class ResultPresenter:
                 'Description': description
             })
 
-        # Convert all columns to strings
         df_combined = pd.DataFrame(combined_results).astype(str)
         st.dataframe(df_combined)
 
@@ -152,7 +158,6 @@ class ResultPresenter:
             'temporal_analysis'
         ]
 
-        import pandas as pd
         df_all = pd.DataFrame({
             'Aspect': [key.replace('_', ' ').capitalize() for key in aspect_order],
             'Score': [all_results.get(key, 0) for key in aspect_order]
@@ -160,7 +165,6 @@ class ResultPresenter:
 
         df_all = df_all.iloc[::-1]
 
-        # Increase margins and figure size for better readability
         fig = go.Figure(go.Bar(
             x=df_all['Score'],
             y=df_all['Aspect'],
@@ -168,14 +172,12 @@ class ResultPresenter:
             text=df_all['Score'],
             textposition='auto'
         ))
-        # Larger margins and figure size for better aspect name visibility
         fig.update_layout(
             margin=dict(l=300, r=50, t=50, b=50),
             width=1600,
             height=1200
         )
         st.plotly_chart(fig, use_container_width=True)
-
         st.markdown("**Legend for Categorical Values:**")
         category_mapping_display = self.get_category_mappings_display()
         for key, mapping in category_mapping_display.items():
@@ -195,7 +197,7 @@ class ResultPresenter:
             'modality_analysis': {'Textual': 0, 'Visual': 1, 'Auditory': 2, 'Multimedia': 3},
             'multimodality_analysis': {'text': 0, 'image': 1, 'audio': 2, 'video': 3, 'interactive': 4},
             'narrative_style_analysis': {'First_Person': 0, 'Second_Person': 1, 'Third_Person': 2},
-            'spatial_analysis': {'General':0,'Local':1,'Regional':2,'Global':3}
+            'spatial_analysis': {'General': 0, 'Local': 1, 'Regional': 2, 'Global': 3}
         }
 
     def get_category_mappings_display(self):
@@ -215,11 +217,16 @@ class ResultPresenter:
         from docx.shared import Inches
 
         document = Document()
-
         document.add_heading('Analysis Report', 0)
 
         document.add_heading('Analysis Results', level=1)
+        # Display the data hash at the beginning of the report if present
+        if "data_hash" in self.analysis_results:
+            document.add_paragraph(f"Data Hash: {self.analysis_results['data_hash']}")
+
         for key, value in self.analysis_results.items():
+            if key == "data_hash":
+                continue  # Already displayed above
             aspect_name = key.replace('_', ' ').capitalize()
             if isinstance(value, float):
                 limits = self.aspect_limits.get(key, (0.0, 1.0))
@@ -267,17 +274,14 @@ class ResultPresenter:
         else:
             document.add_paragraph("No significant inferred synergies could be determined from the current analysis.")
 
-        # Save the plot to a file with larger width/height for better readability
         image_file = os.path.join(results_folder, 'analysis_results.png')
-        # Use kaleido or equivalent to save with the desired dimensions
         self.fig_for_report.update_layout(width=1600, height=1200, margin=dict(l=300))
         self.fig_for_report.write_image(image_file, format='png', scale=3)
-
         document.add_heading('Visualization of Analysis Results', level=1)
-        # Insert the image with a larger width in the docx for better readability
-        document.add_picture(image_file, width=Inches(9))  # wider than before
-
+        document.add_picture(image_file, width=Inches(9))
         report_file = os.path.join(results_folder, 'analysis_report.docx')
         document.save(report_file)
         st.success(f"Report saved to {report_file}")
+
+# End of file
 
