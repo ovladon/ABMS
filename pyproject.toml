@@ -52,3 +52,4 @@ dev = [
 # Console-script entry point (creates `abms` command)
 [project.scripts]
 abms = "publisher.cli:main"
+26f9aed1e (refactor: move codebase into src/abms/ package layout)
