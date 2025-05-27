@@ -9,3 +9,5 @@ description = "Aspect-Based Metadata System"
 authors = [{name = "Vlad Belciug", email = "vlad.belciug@365.univ-ovidius.ro"}]
 dependencies = [line.strip() for line in open("requirements.txt")]
 
+[project.scripts]          # optional CLI helper
+abms = "publisher.cli:main"
