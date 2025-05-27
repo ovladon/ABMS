@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "abms"
+version = "0.1.0"
+description = "Aspect-Based Metadata System"
+authors = [{name = "Vlad Belciug", email = "vlad.belciug@365.univ-ovidius.ro"}]
+dependencies = [line.strip() for line in open("requirements.txt")]
+
