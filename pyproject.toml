@@ -1,13 +1,54 @@
+# pyproject.toml  ── ABMS package
+# -------------------------------------------------
+# Build back-end: setuptools with modern metadata
 [build-system]
-requires = ["setuptools>=61", "wheel"]
+requires = ["setuptools>=61", "wheel"]      # minimum version that understands PEP 621
 build-backend = "setuptools.build_meta"
 
+# -------------------------------------------------
+# Core project metadata (PEP 621 compliant)
 [project]
-name = "abms"
-version = "0.1.0"
-description = "Aspect-Based Metadata System"
-authors = [{name = "Vlad Belciug", email = "vlad.belciug@365.univ-ovidius.ro"}]
-dependencies = [line.strip() for line in open("requirements.txt")]
+name            = "abms"
+version         = "0.1.0"
+description     = "Aspect-Based Metadata System (ABMS)"
+readme          = "README.md"               # optional but recommended
+requires-python = ">=3.10"
+license         = {text = "MIT"}            # or the licence you actually use
+authors         = [
+  { name = "Vlad Belciug", email = "vlad.belciug@365.univ-ovidius.ro" }
+]
 
-[project.scripts]          # optional CLI helper
+# Classifiers help PyPI users & tools find the project
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Developers",
+  "Topic :: Text Processing :: Linguistic"
+]
+
+# **Static** dependency list – PEP 508 specifiers
+dependencies = [
+  "numpy>=1.23",
+  "pandas>=2.0",
+  "scikit-learn>=1.4",
+  "spacy>=3.7",
+  "nltk>=3.9",
+  "transformers>=4.40",
+  "torch>=2.2 ; platform_system != 'Windows'",  # CUDA-enabled wheels absent on Windows CPU-only
+  "tqdm>=4.66",
+  "cryptography>=42.0"
+]
+
+# Optional extras (install with:  pip install .[dev] )
+[project.optional-dependencies]
+dev = [
+  "black>=24.0",
+  "pytest>=8.2",
+  "mypy>=1.10"
+]
+
+# -------------------------------------------------
+# Console-script entry point (creates `abms` command)
+[project.scripts]
 abms = "publisher.cli:main"
