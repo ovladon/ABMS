@@ -57,7 +57,6 @@ def display_results(analysis_results, output_format):
     presenter = ResultPresenter(analysis_results)
     presenter.present_in_streamlit()
     
-    # --- NEW: give reviewers the raw JSON -------------------------------
     st.download_button(
         label="Download full aspect JSON",
         data=json.dumps(analysis_results, indent=2),
