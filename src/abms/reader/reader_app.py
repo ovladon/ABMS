@@ -4,6 +4,7 @@ import binascii
 from aspect_based_metadata_decoder import decode_aspect_based_metadata
 from result_presenter import ResultPresenter
 from content_speculation import ContentSpeculator
+import json, io
 
 def main():
     st.title("Reader Application")
@@ -55,10 +56,20 @@ def main():
 def display_results(analysis_results, output_format):
     presenter = ResultPresenter(analysis_results)
     presenter.present_in_streamlit()
+    
+    # --- NEW: give reviewers the raw JSON -------------------------------
+    st.download_button(
+        label="Download full aspect JSON",
+        data=json.dumps(analysis_results, indent=2),
+        file_name="abms_aspects.json",
+        mime="application/json"
+    )
 
     st.subheader("Content Speculation")
     speculator = ContentSpeculator(analysis_results)
     if output_format == 'Machine-readable':
+        st.subheader("Full Aspect Vector (Machine‑readable)")
+        st.json(analysis_results)
         matched_categories = speculator.speculate_content(output_format='machine')
         st.write("**Inferred Content Categories (Machine-readable):**")
         if matched_categories:
